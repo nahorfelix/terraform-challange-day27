@@ -10,69 +10,40 @@
 Today I implemented a full multi-region Terraform architecture using reusable modules for VPC, ALB, ASG, RDS, and Route53 failover. I split the environment into primary (us-east-1) and secondary (us-west-2) regions and wired outputs/inputs across modules so each layer stays loosely coupled. During deployment I successfully created core network and compute components in both regions (VPCs, subnets, NAT gateways, ALBs, launch templates, and ASGs). The run then stopped on IAM gaps for CloudWatch alarms, RDS tagging during subnet group creation, and Route53 health check creation. This gave me practical experience with production-style IAM troubleshooting while preserving Terraform state safely via backend + errored.tfstate recovery workflow.
 
 ## Project Directory Tree
-`	ext
-Folder PATH listing
-Volume serial number is 7A9D-4FA8
-C:\USERS\FELIX\TERRAFORM 30DAY CHALLENGE\TERRAFORM-CHALLANGE-DAY27\DAY27-MULTI-REGION-HA
-ª   backend.tf
-ª   provider.tf
-ª   
-+---docs
-+---envs
-ª   +---prod
-ª       ª   .terraform.lock.hcl
-ª       ª   backend.tf
-ª       ª   errored.tfstate
-ª       ª   main.tf
-ª       ª   outputs.tf
-ª       ª   provider.tf
-ª       ª   terraform.tfvars
-ª       ª   terraform.tfvars.example
-ª       ª   variables.tf
-ª       ª   
-ª       +---.terraform
-ª           ª   terraform.tfstate
-ª           ª   
-ª           +---modules
-ª           ª       modules.json
-ª           ª       
-ª           +---providers
-ª               +---registry.terraform.io
-ª                   +---hashicorp
-ª                       +---aws
-ª                           +---5.100.0
-ª                               +---windows_amd64
-ª                                       LICENSE.txt
-ª                                       terraform-provider-aws_v5.100.0_x5.exe
-ª                                       
-+---modules
-    +---alb
-    ª       main.tf
-    ª       outputs.tf
-    ª       variables.tf
-    ª       
-    +---asg
-    ª       main.tf
-    ª       outputs.tf
-    ª       variables.tf
-    ª       
-    +---rds
-    ª       main.tf
-    ª       outputs.tf
-    ª       variables.tf
-    ª       
-    +---route53
-    ª       main.tf
-    ª       outputs.tf
-    ª       variables.tf
-    ª       
-    +---vpc
-            main.tf
-            outputs.tf
-            variables.tf
-            
-
-`
+```text
+day27-multi-region-ha/
+├── backend.tf
+├── provider.tf
+├── envs/
+│   └── prod/
+│       ├── backend.tf
+│       ├── main.tf
+│       ├── outputs.tf
+│       ├── provider.tf
+│       ├── terraform.tfvars
+│       └── variables.tf
+└── modules/
+    ├── vpc/
+    │   ├── main.tf
+    │   ├── outputs.tf
+    │   └── variables.tf
+    ├── alb/
+    │   ├── main.tf
+    │   ├── outputs.tf
+    │   └── variables.tf
+    ├── asg/
+    │   ├── main.tf
+    │   ├── outputs.tf
+    │   └── variables.tf
+    ├── rds/
+    │   ├── main.tf
+    │   ├── outputs.tf
+    │   └── variables.tf
+    └── route53/
+        ├── main.tf
+        ├── outputs.tf
+        └── variables.tf
+```
 
 ## Module Code
 
@@ -986,7 +957,8 @@ output "application_url" {
 `
 
 ### Variable defaults rationale (all five modules)
-- Variables with no default are required environment-specific inputs that should be explicitly supplied by the caller (pc_id, subnet_ids, egion, AMIs, domain/zone IDs, DB identity fields, etc.). This prevents accidental cross-region or cross-account misconfiguration.
+- Variables with no default are required environment-specific inputs that should be explicitly supplied by the caller (pc_id, subnet_ids, 
+egion, AMIs, domain/zone IDs, DB identity fields, etc.). This prevents accidental cross-region or cross-account misconfiguration.
 - Variables with defaults are safe operational baselines: sizes (	3.micro), ASG limits (min=1, max=4, desired=2), CPU alarm thresholds (70/30), RDS defaults (8.0, db.t3.micro, 20GB, multi_az=true), booleans (is_replica=false), optional maps (	ags={}), and optional replication source (
 ull).
 
@@ -1307,7 +1279,8 @@ secondary_alb_dns = "web-challenge-day2-alb-us-west-2-1998953731.us-west-2.elb.a
   - secondary_alb_dns = web-challenge-day2-alb-us-west-2-1998953731.us-west-2.elb.amazonaws.com
 
 ## Failover Test
-Failover simulation is pending because Route53 health checks were blocked by IAM (oute53:CreateHealthCheck). Once permission is added, expected behavior is:
+Failover simulation is pending because Route53 health checks were blocked by IAM (
+oute53:CreateHealthCheck). Once permission is added, expected behavior is:
 1. Primary health check fails.
 2. Route53 marks PRIMARY unhealthy.
 3. DNS answer shifts to SECONDARY ALB after health-check intervals and TTL propagation.
