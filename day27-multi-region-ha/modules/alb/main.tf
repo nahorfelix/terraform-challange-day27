@@ -12,6 +12,9 @@ locals {
     Project     = "multi-region-ha"
     Region      = var.region
   })
+  # Keep ALB/TG names under AWS 32-char limit.
+  alb_name_prefix = substr(var.name, 0, 18)
+  tg_name_prefix  = substr(var.name, 0, 19)
 }
 
 resource "aws_security_group" "alb" {
@@ -44,7 +47,7 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_lb" "web" {
-  name               = "${var.name}-alb-${var.region}"
+  name               = "${local.alb_name_prefix}-alb-${var.region}"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
@@ -53,7 +56,7 @@ resource "aws_lb" "web" {
 }
 
 resource "aws_lb_target_group" "web" {
-  name     = "${var.name}-tg-${var.region}"
+  name     = "${local.tg_name_prefix}-tg-${var.region}"
   port     = 80
   protocol = "HTTP"
   vpc_id   = var.vpc_id

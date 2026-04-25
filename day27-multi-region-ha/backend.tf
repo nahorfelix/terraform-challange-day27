@@ -1,9 +1,10 @@
 terraform {
   backend "s3" {
-    bucket         = "your-terraform-state-bucket"
+    bucket         = "felix-terraform-remote-state-2026"
     key            = "day27/multi-region-ha/prod/terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "terraform-state-locks"
+    region         = "eu-north-1"
+    dynamodb_table = "felix-terraform-lock"
     encrypt        = true
   }
 }
+
