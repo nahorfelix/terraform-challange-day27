@@ -1,0 +1,31 @@
+﻿app_name    = "web-challenge-day27"
+environment = "prod"
+
+primary_region   = "us-east-1"
+secondary_region = "us-west-2"
+
+# Primary region — us-east-1
+primary_ami_id               = "ami-0c02fb55956c7d316"
+primary_vpc_cidr             = "10.0.0.0/16"
+primary_public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+primary_private_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24"]
+primary_availability_zones   = ["us-east-1a", "us-east-1b"]
+
+# Secondary region — us-west-2
+secondary_ami_id               = "ami-0395649fbe870727e"
+secondary_vpc_cidr             = "10.1.0.0/16"
+secondary_public_subnet_cidrs  = ["10.1.1.0/24", "10.1.2.0/24"]
+secondary_private_subnet_cidrs = ["10.1.11.0/24", "10.1.12.0/24"]
+secondary_availability_zones   = ["us-west-2a", "us-west-2b"]
+
+instance_type    = "t3.micro"
+min_size         = 1
+max_size         = 4
+desired_capacity = 2
+
+db_name     = "appdb"
+db_username = "admin"
+db_password = "ChangeMe123!"
+
+hosted_zone_id = "ZXXXXXXXXXXXXX"
+domain_name    = "app.example.com"
